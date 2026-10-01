@@ -32,7 +32,6 @@
     .console-box { background: #020617; border: 1px solid var(--border-color); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; padding: 6px; font-family: monospace; font-size: 10px; color: #38bdf8; height: 65px; overflow-y: auto; margin-bottom: 10px; }
     .console-line { margin: 1px 0; border-bottom: 1px solid #0f172a; }
 
-    /* Card Item with Delete Button */
     .card { background: #0f172a; border-radius: 8px; padding: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); position: relative; }
     .card-header { display: flex; justify-content: space-between; align-items: center; }
     .btn-delete { background: var(--danger); color: #fff; border: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
@@ -58,6 +57,8 @@
       align-items: center; 
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.15);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .subject-cell .code { font-weight: 800; font-size: 13px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
     .subject-cell .loc { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.95; text-shadow: 0 1px 2px rgba(0,0,0,0.8); background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; }
@@ -67,10 +68,51 @@
     .btn-trace { background: #a855f7; color: #fff; display: none; margin-top: 6px; }
     .btn-add { background: #3b82f6; color: #fff; display: none; }
     .btn-clear { background: #64748b; color: #fff; display: none; }
+    .btn-pdf { background: #10b981; color: #fff; display: none; margin-top: 6px; }
     .btn-save { display: none; margin-top: 6px; }
     
     #toast { visibility: hidden; background-color: #38bdf8; color: #0f172a; font-weight: bold; text-align: center; border-radius: 6px; padding: 8px; position: fixed; z-index: 10; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; }
     #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+
+    /* CSS PRINT FULL-BLEED REAL 1-PAGE LANDSCAPE */
+    @media print {
+      @page { 
+        size: landscape; 
+        margin: 0mm !important; /* Hapuskan margin putih browser */
+      }
+      html, body {
+        width: 100% !important;
+        height: 100% !important;
+        background: #0f172a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        margin: 0 !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
+      h2 { 
+        font-size: 18px !important; 
+        margin: 0 0 8px 0 !important; 
+        color: #38bdf8 !important;
+      }
+      .left-panel, .btn, .btn-group, #toast { display: none !important; }
+      .app-layout { display: block !important; width: 100% !important; height: 100% !important; }
+      .right-panel { 
+        background: transparent !important; 
+        border: none !important; 
+        max-height: none !important; 
+        width: 100% !important; 
+        padding: 0 !important; 
+        overflow: visible !important;
+      }
+      .timetable-container { width: 100% !important; }
+      table { width: 100% !important; border-spacing: 3px !important; }
+      th { font-size: 12px !important; padding: 5px !important; background: #0f172a !important; color: #38bdf8 !important; }
+      td { height: 32px !important; }
+      .subject-cell .code { font-size: 11px !important; }
+      .subject-cell .loc { font-size: 9px !important; }
+    }
   </style>
 </head>
 <body>
@@ -102,6 +144,7 @@
         <button class="btn btn-clear" id="clear-btn" onclick="clearEmptyCourses()">Clear Empty</button>
       </div>
       <button class="btn btn-save" id="save-btn" onclick="saveData()">Save & Generate</button>
+      <button class="btn btn-pdf" id="pdf-btn" onclick="exportToPdf()">Export to PDF</button>
     </div>
 
     <div class="right-panel">
@@ -151,6 +194,7 @@
           document.getElementById('add-btn').style.display = 'block';
           document.getElementById('clear-btn').style.display = 'block';
           document.getElementById('save-btn').style.display = 'block';
+          document.getElementById('pdf-btn').style.display = 'block';
         }
       } catch (e) {}
     }
@@ -234,6 +278,7 @@
             document.getElementById('add-btn').style.display = 'block';
             document.getElementById('clear-btn').style.display = 'block';
             document.getElementById('save-btn').style.display = 'block';
+            document.getElementById('pdf-btn').style.display = 'block';
             document.getElementById('trace-btn').disabled = false;
             clearInterval(pollInterval);
           }
@@ -298,7 +343,6 @@
     }
 
     async function saveData() {
-      // Automatic clear empty entries before saving
       clearEmptyCourses();
 
       try {
@@ -317,6 +361,10 @@
       } catch (e) {
         alert("Save failed!");
       }
+    }
+
+    function exportToPdf() {
+      window.print();
     }
 
     function getShortName(code, fullName) {
