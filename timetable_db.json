@@ -1,0 +1,44 @@
+[
+  {
+    "course_code": "SSW3307",
+    "course_name": "USER EXPERIENCE AND USER INTERFACE",
+    "lecture_time": "S14-16,K14",
+    "lecture_group": "5",
+    "location": "BK1(FSKTM)"
+  },
+  {
+    "course_code": "CEL2106",
+    "course_name": "COMMUNICATION FOR PROFESSIONAL DEVELOPMENT",
+    "lecture_time": "I12-14",
+    "lecture_group": "64",
+    "location": "BS08 KAA"
+  },
+  {
+    "course_code": "CND3100",
+    "course_name": "NETWORK PROGRAMMING",
+    "lecture_time": "I10-12",
+    "lecture_group": "1",
+    "location": "A3-12"
+  },
+  {
+    "course_code": "LPC2107",
+    "course_name": "GENERAL CHINESE LANGUAGE I",
+    "lecture_time": "S10-12,K11",
+    "lecture_group": "5",
+    "location": "BS04 KAA"
+  },
+  {
+    "course_code": "CND4500",
+    "course_name": "NETWORK SECURITY",
+    "lecture_time": "I09,R08-10",
+    "lecture_group": "1",
+    "location": "A2-06,BK05 KAA"
+  },
+  {
+    "course_code": "CND4200",
+    "course_name": "ENTERPRISE NETWORK DESIGN AND MANAGEMENT",
+    "lecture_time": "S08-10,K10",
+    "lecture_group": "2",
+    "location": "BS07 KAA,BS03 KAA"
+  }
+]

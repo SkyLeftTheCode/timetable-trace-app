@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable Dashboard</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --danger: #ef4444;
+    }
+
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text-main); padding: 12px; margin: 0; font-size: 13px; }
+    h2 { color: var(--accent); text-align: center; margin: 0 0 12px 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+
+    .app-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; align-items: start; }
+    @media (max-width: 768px) { .app-layout { grid-template-columns: 1fr; } }
+
+    /* Left Panel */
+    .left-panel { background: var(--card-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 88vh; overflow-y: auto; }
+    .upload-box { background: #0f172a; border: 1px dashed var(--accent); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 10px; }
+    input[type="file"] { display: none; }
+    .custom-file-upload { background: #1e293b; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; }
+    #preview-img { max-width: 100%; max-height: 80px; border-radius: 6px; margin-top: 8px; display: none; }
+
+    .terminal-header { background: #0f172a; color: var(--accent); padding: 4px 8px; font-family: monospace; font-size: 10px; border-top-left-radius: 6px; border-top-right-radius: 6px; border: 1px solid var(--border-color); border-bottom: none; display: flex; justify-content: space-between; }
+    .console-box { background: #020617; border: 1px solid var(--border-color); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; padding: 6px; font-family: monospace; font-size: 10px; color: #38bdf8; height: 65px; overflow-y: auto; margin-bottom: 10px; }
+    .console-line { margin: 1px 0; border-bottom: 1px solid #0f172a; }
+
+    /* Card Item with Delete Button */
+    .card { background: #0f172a; border-radius: 8px; padding: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); position: relative; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; }
+    .btn-delete { background: var(--danger); color: #fff; border: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+    
+    label { font-size: 9px; color: var(--accent); font-weight: 700; display: block; margin-top: 2px; text-transform: uppercase; }
+    input[type="text"] { width: 100%; padding: 5px; background: #1e293b; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 11px; }
+
+    /* Right Panel */
+    .right-panel { background: var(--card-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 88vh; overflow-y: auto; }
+    .timetable-container { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: separate; border-spacing: 4px; text-align: center; table-layout: fixed; }
+    th { background: #0f172a; color: var(--accent); font-size: 12px; padding: 8px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border-color); }
+    td { background: #0f172a; border-radius: 6px; padding: 0; font-size: 11px; height: 42px; vertical-align: middle; border: 1px solid #1e293b; }
+    
+    .subject-cell { 
+      height: 100%; 
+      border-radius: 6px; 
+      padding: 6px 4px; 
+      box-sizing: border-box; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .subject-cell .code { font-weight: 800; font-size: 13px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
+    .subject-cell .loc { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.95; text-shadow: 0 1px 2px rgba(0,0,0,0.8); background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; }
+
+    .btn-group { display: flex; gap: 6px; margin-top: 6px; }
+    .btn { background: var(--accent); color: #0f172a; font-weight: 700; border: none; padding: 8px; width: 100%; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .btn-trace { background: #a855f7; color: #fff; display: none; margin-top: 6px; }
+    .btn-add { background: #3b82f6; color: #fff; display: none; }
+    .btn-clear { background: #64748b; color: #fff; display: none; }
+    .btn-save { display: none; margin-top: 6px; }
+    
+    #toast { visibility: hidden; background-color: #38bdf8; color: #0f172a; font-weight: bold; text-align: center; border-radius: 6px; padding: 8px; position: fixed; z-index: 10; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; }
+    #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+  </style>
+</head>
+<body>
+
+  <h2>TIMETABLE DASHBOARD</h2>
+
+  <div class="app-layout">
+    
+    <div class="left-panel">
+      <div class="upload-box">
+        <label for="file-upload" class="custom-file-upload">Select Image</label>
+        <input id="file-upload" type="file" accept="image/*" onchange="previewAndCompressImage(event)"/>
+        <img id="preview-img" src="" alt="Image Preview">
+        <button class="btn btn-trace" id="trace-btn" onclick="startAiTrace()">Trace Timetable</button>
+      </div>
+
+      <div class="terminal-header">
+        <span>LOG CONSOLE</span>
+        <span id="status-badge" style="color:#aaa;">READY</span>
+      </div>
+      <div id="console-box" class="console-box">
+        <div class="console-line">[SYSTEM] Ready.</div>
+      </div>
+
+      <div id="course-list"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-add" id="add-btn" onclick="addCourse()">+ Add Course</button>
+        <button class="btn btn-clear" id="clear-btn" onclick="clearEmptyCourses()">Clear Empty</button>
+      </div>
+      <button class="btn btn-save" id="save-btn" onclick="saveData()">Save & Generate</button>
+    </div>
+
+    <div class="right-panel">
+      <div class="timetable-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 55px;">Time</th>
+              <th>Monday</th>
+              <th>Tuesday</th>
+              <th>Wednesday</th>
+              <th>Thursday</th>
+              <th>Friday</th>
+            </tr>
+          </thead>
+          <tbody id="timetable-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast">Saved & Updated!</div>
+
+  <script>
+    let compressedBase64 = "";
+    let coursesData = [];
+    let pollInterval = null;
+
+    const COLOR_PALETTE = [
+      { bg: '#0284c7', text: '#ffffff' },
+      { bg: '#7c3aed', text: '#ffffff' },
+      { bg: '#059669', text: '#ffffff' },
+      { bg: '#ea580c', text: '#ffffff' },
+      { bg: '#db2777', text: '#ffffff' },
+      { bg: '#2563eb', text: '#ffffff' }
+    ];
+
+    async function loadExistingData() {
+      try {
+        const res = await fetch('/api/load');
+        const result = await res.json();
+        if (result.success && result.data.length > 0) {
+          coursesData = result.data;
+          renderCourses();
+          generateGrid();
+          document.getElementById('add-btn').style.display = 'block';
+          document.getElementById('clear-btn').style.display = 'block';
+          document.getElementById('save-btn').style.display = 'block';
+        }
+      } catch (e) {}
+    }
+
+    function previewAndCompressImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_WIDTH = 800;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+          document.getElementById('preview-img').src = compressedBase64;
+          document.getElementById('preview-img').style.display = 'inline-block';
+          document.getElementById('trace-btn').style.display = 'block';
+          appendLog("Image ready.");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function appendLog(msg) {
+      const consoleBox = document.getElementById('console-box');
+      consoleBox.innerHTML += `<div class="console-line">${msg}</div>`;
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    async function startAiTrace() {
+      if (!compressedBase64) return alert("Select an image first!");
+
+      document.getElementById('status-badge').innerText = "PROCESSING...";
+      document.getElementById('status-badge').style.color = "#38bdf8";
+      document.getElementById('trace-btn').disabled = true;
+
+      appendLog("Sending image to server...");
+
+      try {
+        await fetch('/api/trace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: compressedBase64 })
+        });
+
+        appendLog("Tracing in background...");
+
+        let attempts = 0;
+        if (pollInterval) clearInterval(pollInterval);
+        
+        pollInterval = setInterval(async () => {
+          attempts++;
+          appendLog(`Checking database (${attempts})...`);
+          
+          const res = await fetch('/api/load');
+          const result = await res.json();
+
+          if (result.success && result.data.length > 0) {
+            coursesData = result.data;
+            renderCourses();
+            generateGrid();
+            
+            appendLog("Extraction complete!");
+            document.getElementById('status-badge').innerText = "COMPLETE";
+            document.getElementById('status-badge').style.color = "#4ade80";
+            document.getElementById('add-btn').style.display = 'block';
+            document.getElementById('clear-btn').style.display = 'block';
+            document.getElementById('save-btn').style.display = 'block';
+            document.getElementById('trace-btn').disabled = false;
+            clearInterval(pollInterval);
+          }
+
+          if (attempts > 15) {
+            appendLog("Timeout. Please try again.");
+            document.getElementById('trace-btn').disabled = false;
+            clearInterval(pollInterval);
+          }
+        }, 2000);
+
+      } catch (err) {
+        appendLog(`Error: ${err.message}`);
+        document.getElementById('trace-btn').disabled = false;
+      }
+    }
+
+    function renderCourses() {
+      const container = document.getElementById('course-list');
+      container.innerHTML = '';
+
+      coursesData.forEach((course, index) => {
+        container.innerHTML += `
+          <div class="card">
+            <div class="card-header">
+              <label>Course #${index + 1}</label>
+              <button class="btn-delete" onclick="removeCourse(${index})">Remove</button>
+            </div>
+            <input type="text" value="${course.course_code || ''}" placeholder="Code" oninput="updateData(${index}, 'course_code', this.value)" style="margin-bottom:4px; margin-top:2px;">
+            <input type="text" value="${course.course_name || ''}" placeholder="Name" oninput="updateData(${index}, 'course_name', this.value)">
+
+            <label>Time / Day (e.g. S14-16,K14):</label>
+            <input type="text" value="${course.lecture_time || ''}" oninput="updateData(${index}, 'lecture_time', this.value)">
+
+            <label>Group & Location:</label>
+            <input type="text" value="${course.lecture_group || ''}" placeholder="Group" oninput="updateData(${index}, 'lecture_group', this.value)" style="margin-bottom:4px;">
+            <input type="text" value="${course.location || ''}" placeholder="Location" oninput="updateData(${index}, 'location', this.value)">
+          </div>
+        `;
+      });
+    }
+
+    function updateData(index, key, val) {
+      coursesData[index][key] = val;
+    }
+
+    function addCourse() {
+      coursesData.push({ course_code: "", course_name: "", lecture_time: "", lecture_group: "", location: "" });
+      renderCourses();
+    }
+
+    function removeCourse(index) {
+      coursesData.splice(index, 1);
+      renderCourses();
+      generateGrid();
+    }
+
+    function clearEmptyCourses() {
+      coursesData = coursesData.filter(c => c.course_code || c.course_name || c.lecture_time);
+      renderCourses();
+      generateGrid();
+    }
+
+    async function saveData() {
+      // Automatic clear empty entries before saving
+      clearEmptyCourses();
+
+      try {
+        await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(coursesData)
+        });
+        
+        const toast = document.getElementById("toast");
+        toast.className = "show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+
+        appendLog("Saved!");
+        generateGrid();
+      } catch (e) {
+        alert("Save failed!");
+      }
+    }
+
+    function getShortName(code, fullName) {
+      if (!fullName) return code;
+      const upper = fullName.toUpperCase();
+      if (upper.includes("USER EXPERIENCE")) return `${code}<br>UI/UX`;
+      if (upper.includes("NETWORK PROGRAMMING")) return `${code}<br>NetProg`;
+      if (upper.includes("NETWORK SECURITY")) return `${code}<br>NetSec`;
+      if (upper.includes("ENTERPRISE NETWORK")) return `${code}<br>NetDesign`;
+      if (upper.includes("CHINESE LANGUAGE")) return `${code}<br>Chinese 1`;
+      if (upper.includes("COMMUNICATION FOR PROFESSIONAL")) return `${code}<br>CommDev`;
+      
+      return code;
+    }
+
+    function generateGrid() {
+      const startHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+      const days = ["I", "S", "R", "K", "J"];
+      const tbody = document.getElementById('timetable-body');
+      tbody.innerHTML = '';
+
+      const skipCells = {}; 
+      days.forEach(d => skipCells[d] = {});
+
+      const subjectColors = {};
+      let colorIdx = 0;
+      coursesData.forEach(c => {
+        if (c.course_code && !subjectColors[c.course_code]) {
+          subjectColors[c.course_code] = COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+          colorIdx++;
+        }
+      });
+
+      startHours.forEach(hour => {
+        const timeLabel = `${hour < 10 ? '0'+hour : hour}:00`;
+        let rowHtml = `<tr><td style="font-weight:700; color:var(--text-sub); font-size:10px; background:#0f172a;">${timeLabel}</td>`;
+
+        days.forEach(d => {
+          if (skipCells[d][hour]) return;
+
+          let matchedCourse = null;
+          let duration = 1;
+
+          coursesData.forEach(c => {
+            if (!c.lecture_time) return;
+            const parts = c.lecture_time.split(',');
+            parts.forEach(p => {
+              const dayCode = p.charAt(0);
+              const hourRange = p.substring(1);
+
+              if (dayCode === d) {
+                if (hourRange.includes('-')) {
+                  const [hStart, hEnd] = hourRange.split('-').map(x => parseInt(x));
+                  if (hour === hStart) {
+                    matchedCourse = c;
+                    duration = hEnd - hStart;
+                  }
+                } else {
+                  if (hour === parseInt(hourRange)) {
+                    matchedCourse = c;
+                    duration = 1;
+                  }
+                }
+              }
+            });
+          });
+
+          if (matchedCourse) {
+            for (let i = 1; i < duration; i++) {
+              skipCells[d][hour + i] = true;
+            }
+
+            const shortLabel = getShortName(matchedCourse.course_code, matchedCourse.course_name);
+            const color = subjectColors[matchedCourse.course_code] || COLOR_PALETTE[0];
+            const rowspanAttr = duration > 1 ? `rowspan="${duration}"` : '';
+
+            rowHtml += `<td ${rowspanAttr} style="padding: 2px;">
+              <div class="subject-cell" style="background: ${color.bg}; color: ${color.text};">
+                <div class="code">${shortLabel}</div>
+                <div class="loc">${matchedCourse.location || '-'}</div>
+              </div>
+            </td>`;
+          } else {
+            rowHtml += `<td></td>`;
+          }
+        });
+
+        rowHtml += `</tr>`;
+        tbody.innerHTML += rowHtml;
+      });
+    }
+
+    loadExistingData();
+  </script>
+</body>
+</html>
