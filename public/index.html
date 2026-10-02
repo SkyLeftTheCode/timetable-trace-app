@@ -339,7 +339,7 @@
       }
     }
 
-    // BORANG KIRI DENGAN MEDAN LECTURE & LAB BERASINGAN
+    // BORANG KIRI
     function renderCourses() {
       const container = document.getElementById('course-list');
       container.innerHTML = '';
@@ -357,8 +357,8 @@
             <label>Lecture Time / Day (e.g. S14-16,K14):</label>
             <input type="text" value="${course.lecture_time || ''}" oninput="updateData(${index}, 'lecture_time', this.value)">
 
-            <label>Lecture Location:</label>
-            <input type="text" value="${course.location || ''}" placeholder="Location" oninput="updateData(${index}, 'location', this.value)">
+            <label>Lecture Location (Comma separated for multi-session):</label>
+            <input type="text" value="${course.location || ''}" placeholder="e.g. A2-06,BK05 KAA" oninput="updateData(${index}, 'location', this.value)">
 
             <label class="label-lab">🧪 Lab Time / Day (Optional, e.g. R10-13):</label>
             <input type="text" value="${course.lab_time || ''}" placeholder="e.g. R10-13" oninput="updateData(${index}, 'lab_time', this.value)">
@@ -434,28 +434,34 @@
       generateAgenda();
     }
 
-    // FUNGSI MEMBINA SLOT-SLOT MASA KULIAH & LAB
+    // FUNGSI MEMBINA SLOT-SLOT MASA KULIAH & LAB SECARA TEPAT
     function getAllTimeSlots() {
       let slots = [];
 
       coursesData.forEach(c => {
         if (!c.course_code) return;
 
-        // 1. Slot Kuliah
+        // 1. Slot Kuliah (Lecture)
         if (c.lecture_time) {
-          c.lecture_time.split(',').forEach(p => {
+          const parts = c.lecture_time.split(',');
+          const locs = (c.location || '').split(',').map(l => l.trim());
+
+          parts.forEach((p, idx) => {
             const dayCode = p.charAt(0);
             const hourRange = p.substring(1);
+            // Padankan lokasi ikut urutan sesi (Sesi 1 -> Lokasi 1, Sesi 2 -> Lokasi 2)
+            const matchedLoc = locs[idx] || locs[0] || '-';
+
             if (hourRange.includes('-')) {
               const [hStart, hEnd] = hourRange.split('-').map(x => parseInt(x));
-              slots.push({ dayCode, startHour: hStart, duration: hEnd - hStart, course: c, loc: c.location, isLab: false });
+              slots.push({ dayCode, startHour: hStart, duration: hEnd - hStart, course: c, loc: matchedLoc, isLab: false });
             } else {
-              slots.push({ dayCode, startHour: parseInt(hourRange), duration: 1, course: c, loc: c.location, isLab: false });
+              slots.push({ dayCode, startHour: parseInt(hourRange), duration: 1, course: c, loc: matchedLoc, isLab: false });
             }
           });
         }
 
-        // 2. Slot Lab (Jika Ada)
+        // 2. Slot Lab (SEBENAR)
         if (c.lab_time) {
           c.lab_time.split(',').forEach(p => {
             const dayCode = p.charAt(0);
@@ -512,6 +518,7 @@
             const color = subjectColors[matchedSlot.course.course_code] || COLOR_PALETTE[0];
             const rowspanAttr = matchedSlot.duration > 1 ? `rowspan="${matchedSlot.duration}"` : '';
 
+            // HANYA paparkan tag LAB jika slot tersebut dari lab_time!
             const labTagHtml = matchedSlot.isLab ? `<div><span class="lab-tag">LAB</span></div>` : '';
 
             rowHtml += `<td ${rowspanAttr} style="padding: 2px;">

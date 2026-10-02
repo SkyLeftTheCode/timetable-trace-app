@@ -18,7 +18,9 @@
     "course_name": "NETWORK PROGRAMMING",
     "lecture_time": "I10-12",
     "lecture_group": "1",
-    "location": "A3-12"
+    "location": "A3-12",
+    "lab_time": "R10-13",
+    "lab_location": "M.P.DATA FSKTM"
   },
   {
     "course_code": "LPC2107",
