@@ -70,8 +70,20 @@
     .subject-cell .code { font-weight: 800; font-size: 13px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
     .subject-cell .loc { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.95; text-shadow: 0 1px 2px rgba(0,0,0,0.8); background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; }
     
-    /* LAB BADGE */
-    .lab-tag { background: #f59e0b; color: #000; font-weight: 900; font-size: 8.5px; padding: 1px 4px; border-radius: 3px; margin-left: 3px; vertical-align: middle; letter-spacing: 0.5px; }
+    /* BADGE LAB (CENTER ATAS & TIADA SHADOW) */
+    .lab-tag { 
+      background: #f59e0b; 
+      color: #000; 
+      font-weight: 900; 
+      font-size: 9px; 
+      padding: 2px 6px; 
+      border-radius: 4px; 
+      letter-spacing: 0.5px; 
+      text-shadow: none !important; 
+      box-shadow: none !important; 
+      margin-bottom: 4px; 
+      display: inline-block; 
+    }
 
     /* STYLE 2: AGENDA WIDGET VIEW */
     .agenda-container { 
@@ -414,7 +426,7 @@
       generateAgenda();
     }
 
-    // FUNGSI TAFSIR LOKASI DENGAN DETEKSI [LAB]
+    // FUNGSI LOKASI DENGAN DETEKSI [LAB]
     function parseCourseLocation(locationStr, partIndex) {
       if (!locationStr) return { loc: '-', isLab: false };
       const locs = locationStr.split(',').map(l => l.trim());
@@ -491,11 +503,12 @@
             const rowspanAttr = duration > 1 ? `rowspan="${duration}"` : '';
 
             const locInfo = parseCourseLocation(matchedCourse.location, partIdx);
-            const labTagHtml = locInfo.isLab ? `<span class="lab-tag">LAB</span>` : '';
+            const labTagHtml = locInfo.isLab ? `<div><span class="lab-tag">LAB</span></div>` : '';
 
             rowHtml += `<td ${rowspanAttr} style="padding: 2px;">
               <div class="subject-cell" style="background: ${color.bg}; color: ${color.text};">
-                <div class="code">${shortLabel} ${labTagHtml}</div>
+                ${labTagHtml}
+                <div class="code">${shortLabel}</div>
                 <div class="loc">${locInfo.loc}</div>
               </div>
             </td>`;
@@ -566,7 +579,7 @@
           dayClasses.forEach((cls, idx) => {
             const color = subjectColors[cls.courseCode] || COLOR_PALETTE[0];
             const dayLabel = idx === 0 ? dayName : '';
-            const labTagHtml = cls.isLab ? `<span class="lab-tag">LAB</span>` : '';
+            const labTagHtml = cls.isLab ? `<span class="lab-tag" style="margin-left:4px; margin-bottom:0;">LAB</span>` : '';
 
             dayHtml += `
               <div class="agenda-row">

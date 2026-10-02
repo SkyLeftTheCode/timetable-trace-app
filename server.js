@@ -14,26 +14,26 @@ const ai = new GoogleGenAI();
 app.post('/api/trace', async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) {
-    return res.status(400).json({ success: false, error: "Image not found." });
+    return res.status(400).json({ success: false, error: "Imej tidak dijumpai." });
   }
 
-  // Response awal non-blocking
-  res.json({ success: true, message: "AI process started in background..." });
+  // Respon pantas non-blocking untuk elak browser timeout
+  res.json({ success: true, message: "Proses AI dimulakan di belakang tabir..." });
 
   (async () => {
     try {
-      console.log("🚀 [BACKEND] Starting AI Trace...");
+      console.log("🚀 [BACKEND] Memulakan AI Trace...");
 
       const prompt = `
-      Analyze this university timetable schedule image.
-      Extract the following information for each course:
+      Analisis gambar jadual waktu universiti ini.
+      Ekstrak maklumat berikut bagi setiap subjek:
       - course_code
       - course_name
       - lecture_time
       - lecture_group
       - location
 
-      Return STRICTLY a JSON array without markdown or extra text.
+      Format jawapan strictly dalam JSON array sahaja tanpa sebarang markdown/teks tambahan.
       `;
 
       const pureBase64 = imageBase64.split(',')[1] || imageBase64;
@@ -42,7 +42,7 @@ app.post('/api/trace', async (req, res) => {
 
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          console.log(`🤖 Attempt ${attempt} calling ${modelName}...`);
+          console.log(`🤖 Percubaan ${attempt} memanggil ${modelName}...`);
           const response = await ai.models.generateContent({
             model: modelName,
             contents: [{
@@ -59,7 +59,7 @@ app.post('/api/trace', async (req, res) => {
             break;
           }
         } catch (err) {
-          console.warn(`⚠️ Attempt ${attempt} failed: ${err.message}`);
+          console.warn(`⚠️ Percubaan ${attempt} gagal: ${err.message}`);
           await new Promise(r => setTimeout(r, 2000));
         }
       }
@@ -69,10 +69,10 @@ app.post('/api/trace', async (req, res) => {
         const parsedData = JSON.parse(cleanText);
         
         fs.writeFileSync('./timetable_db.json', JSON.stringify(parsedData, null, 2));
-        console.log("🎉 [BACKEND] AI Trace complete & saved to DB!");
+        console.log("🎉 [BACKEND] AI Trace selesai & disimpan ke database!");
       }
     } catch (e) {
-      console.error("❌ Backend Error:", e.message);
+      console.error("❌ Ralat Backend:", e.message);
     }
   })();
 });
@@ -82,17 +82,17 @@ app.get('/api/load', (req, res) => {
     const raw = fs.readFileSync('./timetable_db.json');
     res.json({ success: true, data: JSON.parse(raw) });
   } else {
-    res.json({ success: false, error: "No data stored yet." });
+    res.json({ success: false, error: "Tiada data disimpan lagi." });
   }
 });
 
 app.post('/api/save', (req, res) => {
   const confirmedData = req.body;
   fs.writeFileSync('./timetable_db.json', JSON.stringify(confirmedData, null, 2));
-  console.log("Timetable saved!");
-  res.json({ success: true, message: "Timetable saved successfully!" });
+  console.log("Jadual disahkan & disimpan!");
+  res.json({ success: true, message: "Jadual berjaya disimpan!" });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server sedia di http://localhost:${PORT}`);
 });
