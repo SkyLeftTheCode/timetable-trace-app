@@ -39,8 +39,15 @@
     label { font-size: 9px; color: var(--accent); font-weight: 700; display: block; margin-top: 2px; text-transform: uppercase; }
     input[type="text"] { width: 100%; padding: 5px; background: #1e293b; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 11px; }
 
-    /* Right Panel */
+    /* Right Panel & View Switcher */
     .right-panel { background: var(--card-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 88vh; overflow-y: auto; }
+    
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .view-toggle { display: flex; gap: 4px; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid var(--border-color); }
+    .toggle-btn { background: transparent; color: var(--text-sub); border: none; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; cursor: pointer; }
+    .toggle-btn.active { background: var(--accent); color: #0f172a; }
+
+    /* STYLE 1: GRID VIEW */
     .timetable-container { width: 100%; overflow-x: auto; }
     table { width: 100%; border-collapse: separate; border-spacing: 4px; text-align: center; table-layout: fixed; }
     th { background: #0f172a; color: var(--accent); font-size: 12px; padding: 8px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border-color); }
@@ -62,6 +69,29 @@
     }
     .subject-cell .code { font-weight: 800; font-size: 13px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
     .subject-cell .loc { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.95; text-shadow: 0 1px 2px rgba(0,0,0,0.8); background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; }
+    
+    /* LAB BADGE */
+    .lab-tag { background: #f59e0b; color: #000; font-weight: 900; font-size: 8.5px; padding: 1px 4px; border-radius: 3px; margin-left: 3px; vertical-align: middle; letter-spacing: 0.5px; }
+
+    /* STYLE 2: AGENDA WIDGET VIEW */
+    .agenda-container { 
+      background: rgba(15, 23, 42, 0.85); 
+      border: 1px solid var(--border-color); 
+      border-radius: 16px; 
+      padding: 16px; 
+      max-width: 480px; 
+      margin: 0 auto; 
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .agenda-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-sub); margin-bottom: 12px; text-transform: uppercase; }
+    .agenda-day-group { margin-bottom: 12px; }
+    .agenda-row { display: flex; align-items: center; padding: 4px 0; font-size: 12px; }
+    .agenda-day { width: 45px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
+    .agenda-time { width: 75px; font-weight: 600; color: #cbd5e1; font-size: 11px; }
+    .agenda-bar { width: 3px; height: 16px; border-radius: 2px; margin: 0 10px; }
+    .agenda-course { font-weight: 800; color: #fff; flex: 1; font-size: 12px; letter-spacing: 0.3px; }
+    .agenda-loc { color: var(--text-sub); font-size: 11px; font-weight: 500; text-align: right; }
 
     .btn-group { display: flex; gap: 6px; margin-top: 6px; }
     .btn { background: var(--accent); color: #0f172a; font-weight: 700; border: none; padding: 8px; width: 100%; border-radius: 6px; font-size: 12px; cursor: pointer; }
@@ -74,44 +104,17 @@
     #toast { visibility: hidden; background-color: #38bdf8; color: #0f172a; font-weight: bold; text-align: center; border-radius: 6px; padding: 8px; position: fixed; z-index: 10; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; }
     #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-    /* CSS PRINT FULL-BLEED REAL 1-PAGE LANDSCAPE */
+    /* CSS PRINT FULL-BLEED LANDSCAPE */
     @media print {
-      @page { 
-        size: landscape; 
-        margin: 0mm !important; /* Hapuskan margin putih browser */
-      }
-      html, body {
-        width: 100% !important;
-        height: 100% !important;
-        background: #0f172a !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        margin: 0 !important;
-        padding: 12px !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-      }
-      h2 { 
-        font-size: 18px !important; 
-        margin: 0 0 8px 0 !important; 
-        color: #38bdf8 !important;
-      }
-      .left-panel, .btn, .btn-group, #toast { display: none !important; }
-      .app-layout { display: block !important; width: 100% !important; height: 100% !important; }
-      .right-panel { 
-        background: transparent !important; 
-        border: none !important; 
-        max-height: none !important; 
-        width: 100% !important; 
-        padding: 0 !important; 
-        overflow: visible !important;
-      }
-      .timetable-container { width: 100% !important; }
+      @page { size: landscape; margin: 0mm !important; }
+      html, body { width: 100% !important; height: 100% !important; background: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0 !important; padding: 12px !important; box-sizing: border-box !important; overflow: hidden !important; }
+      h2, .left-panel, .btn, .btn-group, .view-toggle, #toast { display: none !important; }
+      .app-layout { display: block !important; width: 100% !important; }
+      .right-panel { background: transparent !important; border: none !important; max-height: none !important; width: 100% !important; padding: 0 !important; }
+      .agenda-container { max-width: 100% !important; background: transparent !important; border: none !important; box-shadow: none !important; }
       table { width: 100% !important; border-spacing: 3px !important; }
       th { font-size: 12px !important; padding: 5px !important; background: #0f172a !important; color: #38bdf8 !important; }
       td { height: 32px !important; }
-      .subject-cell .code { font-size: 11px !important; }
-      .subject-cell .loc { font-size: 9px !important; }
     }
   </style>
 </head>
@@ -148,7 +151,16 @@
     </div>
 
     <div class="right-panel">
-      <div class="timetable-container">
+      <div class="panel-header">
+        <span style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DISPLAY MODE</span>
+        <div class="view-toggle">
+          <button class="toggle-btn active" id="btn-grid-view" onclick="switchView('grid')">Grid View</button>
+          <button class="toggle-btn" id="btn-agenda-view" onclick="switchView('agenda')">Lockscreen Agenda</button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: GRID -->
+      <div id="grid-view-container" class="timetable-container">
         <table>
           <thead>
             <tr>
@@ -163,6 +175,13 @@
           <tbody id="timetable-body"></tbody>
         </table>
       </div>
+
+      <!-- VIEW 2: AGENDA WIDGET -->
+      <div id="agenda-view-container" class="agenda-container" style="display: none;">
+        <div class="agenda-title">My Timetable</div>
+        <div id="agenda-body"></div>
+      </div>
+
     </div>
 
   </div>
@@ -173,14 +192,15 @@
     let compressedBase64 = "";
     let coursesData = [];
     let pollInterval = null;
+    let currentView = 'grid';
 
     const COLOR_PALETTE = [
-      { bg: '#0284c7', text: '#ffffff' },
-      { bg: '#7c3aed', text: '#ffffff' },
-      { bg: '#059669', text: '#ffffff' },
-      { bg: '#ea580c', text: '#ffffff' },
-      { bg: '#db2777', text: '#ffffff' },
-      { bg: '#2563eb', text: '#ffffff' }
+      { bg: '#38bdf8', text: '#ffffff' },
+      { bg: '#a855f7', text: '#ffffff' },
+      { bg: '#34d399', text: '#ffffff' },
+      { bg: '#fb923c', text: '#ffffff' },
+      { bg: '#f43f5e', text: '#ffffff' },
+      { bg: '#60a5fa', text: '#ffffff' }
     ];
 
     async function loadExistingData() {
@@ -190,13 +210,22 @@
         if (result.success && result.data.length > 0) {
           coursesData = result.data;
           renderCourses();
-          generateGrid();
+          renderViews();
           document.getElementById('add-btn').style.display = 'block';
           document.getElementById('clear-btn').style.display = 'block';
           document.getElementById('save-btn').style.display = 'block';
           document.getElementById('pdf-btn').style.display = 'block';
         }
       } catch (e) {}
+    }
+
+    function switchView(mode) {
+      currentView = mode;
+      document.getElementById('btn-grid-view').classList.toggle('active', mode === 'grid');
+      document.getElementById('btn-agenda-view').classList.toggle('active', mode === 'agenda');
+      
+      document.getElementById('grid-view-container').style.display = mode === 'grid' ? 'block' : 'none';
+      document.getElementById('agenda-view-container').style.display = mode === 'agenda' ? 'block' : 'none';
     }
 
     function previewAndCompressImage(event) {
@@ -270,7 +299,7 @@
           if (result.success && result.data.length > 0) {
             coursesData = result.data;
             renderCourses();
-            generateGrid();
+            renderViews();
             
             appendLog("Extraction complete!");
             document.getElementById('status-badge').innerText = "COMPLETE";
@@ -333,13 +362,13 @@
     function removeCourse(index) {
       coursesData.splice(index, 1);
       renderCourses();
-      generateGrid();
+      renderViews();
     }
 
     function clearEmptyCourses() {
       coursesData = coursesData.filter(c => c.course_code || c.course_name || c.lecture_time);
       renderCourses();
-      generateGrid();
+      renderViews();
     }
 
     async function saveData() {
@@ -357,7 +386,7 @@
         setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
 
         appendLog("Saved!");
-        generateGrid();
+        renderViews();
       } catch (e) {
         alert("Save failed!");
       }
@@ -380,6 +409,23 @@
       return code;
     }
 
+    function renderViews() {
+      generateGrid();
+      generateAgenda();
+    }
+
+    // FUNGSI TAFSIR LOKASI DENGAN DETEKSI [LAB]
+    function parseCourseLocation(locationStr, partIndex) {
+      if (!locationStr) return { loc: '-', isLab: false };
+      const locs = locationStr.split(',').map(l => l.trim());
+      
+      if (locs.length > 1 && partIndex > 0) {
+        return { loc: locs[partIndex] || locs[0], isLab: true };
+      }
+      return { loc: locs[0], isLab: false };
+    }
+
+    // 1. GENERATE GRID VIEW
     function generateGrid() {
       const startHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
       const days = ["I", "S", "R", "K", "J"];
@@ -407,11 +453,12 @@
 
           let matchedCourse = null;
           let duration = 1;
+          let partIdx = 0;
 
           coursesData.forEach(c => {
             if (!c.lecture_time) return;
             const parts = c.lecture_time.split(',');
-            parts.forEach(p => {
+            parts.forEach((p, idx) => {
               const dayCode = p.charAt(0);
               const hourRange = p.substring(1);
 
@@ -421,11 +468,13 @@
                   if (hour === hStart) {
                     matchedCourse = c;
                     duration = hEnd - hStart;
+                    partIdx = idx;
                   }
                 } else {
                   if (hour === parseInt(hourRange)) {
                     matchedCourse = c;
                     duration = 1;
+                    partIdx = idx;
                   }
                 }
               }
@@ -441,10 +490,13 @@
             const color = subjectColors[matchedCourse.course_code] || COLOR_PALETTE[0];
             const rowspanAttr = duration > 1 ? `rowspan="${duration}"` : '';
 
+            const locInfo = parseCourseLocation(matchedCourse.location, partIdx);
+            const labTagHtml = locInfo.isLab ? `<span class="lab-tag">LAB</span>` : '';
+
             rowHtml += `<td ${rowspanAttr} style="padding: 2px;">
               <div class="subject-cell" style="background: ${color.bg}; color: ${color.text};">
-                <div class="code">${shortLabel}</div>
-                <div class="loc">${matchedCourse.location || '-'}</div>
+                <div class="code">${shortLabel} ${labTagHtml}</div>
+                <div class="loc">${locInfo.loc}</div>
               </div>
             </td>`;
           } else {
@@ -454,6 +506,81 @@
 
         rowHtml += `</tr>`;
         tbody.innerHTML += rowHtml;
+      });
+    }
+
+    // 2. GENERATE AGENDA WIDGET VIEW
+    function generateAgenda() {
+      const daysMap = { "I": "MON", "S": "TUE", "R": "WED", "K": "THU", "J": "FRI" };
+      const agendaBody = document.getElementById('agenda-body');
+      agendaBody.innerHTML = '';
+
+      const subjectColors = {};
+      let colorIdx = 0;
+      coursesData.forEach(c => {
+        if (c.course_code && !subjectColors[c.course_code]) {
+          subjectColors[c.course_code] = COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+          colorIdx++;
+        }
+      });
+
+      Object.keys(daysMap).forEach(dayCode => {
+        const dayName = daysMap[dayCode];
+        let dayClasses = [];
+
+        coursesData.forEach(c => {
+          if (!c.lecture_time) return;
+          const parts = c.lecture_time.split(',');
+          parts.forEach((p, idx) => {
+            if (p.charAt(0) === dayCode) {
+              const hourRange = p.substring(1);
+              let startHour = 8;
+              let formatTime = "";
+
+              if (hourRange.includes('-')) {
+                const [hStart] = hourRange.split('-').map(x => parseInt(x));
+                startHour = hStart;
+                formatTime = `${hStart > 12 ? hStart - 12 : hStart}:00 ${hStart >= 12 ? 'PM' : 'AM'}`;
+              } else {
+                startHour = parseInt(hourRange);
+                formatTime = `${startHour > 12 ? startHour - 12 : startHour}:00 ${startHour >= 12 ? 'PM' : 'AM'}`;
+              }
+
+              const locInfo = parseCourseLocation(c.location, idx);
+
+              dayClasses.push({
+                startHour,
+                timeStr: formatTime,
+                courseCode: c.course_code,
+                location: locInfo.loc,
+                isLab: locInfo.isLab
+              });
+            }
+          });
+        });
+
+        dayClasses.sort((a, b) => a.startHour - b.startHour);
+
+        if (dayClasses.length > 0) {
+          let dayHtml = `<div class="agenda-day-group">`;
+          dayClasses.forEach((cls, idx) => {
+            const color = subjectColors[cls.courseCode] || COLOR_PALETTE[0];
+            const dayLabel = idx === 0 ? dayName : '';
+            const labTagHtml = cls.isLab ? `<span class="lab-tag">LAB</span>` : '';
+
+            dayHtml += `
+              <div class="agenda-row">
+                <div class="agenda-day">${dayLabel}</div>
+                <div class="agenda-time">${cls.timeStr}</div>
+                <div class="agenda-bar" style="background: ${color.bg};"></div>
+                <div class="agenda-course">${cls.courseCode} ${labTagHtml}</div>
+                <div class="agenda-loc">${cls.location}</div>
+              </div>
+            `;
+          });
+          dayHtml += `</div>`;
+          agendaBody.innerHTML += dayHtml;
+        }
       });
     }
 
