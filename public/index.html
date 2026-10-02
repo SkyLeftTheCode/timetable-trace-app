@@ -13,6 +13,7 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --danger: #ef4444;
+      --lab-color: #f59e0b;
     }
 
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text-main); padding: 12px; margin: 0; font-size: 13px; }
@@ -36,7 +37,8 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; }
     .btn-delete { background: var(--danger); color: #fff; border: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
     
-    label { font-size: 9px; color: var(--accent); font-weight: 700; display: block; margin-top: 2px; text-transform: uppercase; }
+    label { font-size: 9px; color: var(--accent); font-weight: 700; display: block; margin-top: 4px; text-transform: uppercase; }
+    .label-lab { color: var(--lab-color) !important; }
     input[type="text"] { width: 100%; padding: 5px; background: #1e293b; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 11px; }
 
     /* Right Panel & View Switcher */
@@ -70,9 +72,9 @@
     .subject-cell .code { font-weight: 800; font-size: 13px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
     .subject-cell .loc { font-size: 11px; margin-top: 3px; font-weight: 600; opacity: 0.95; text-shadow: 0 1px 2px rgba(0,0,0,0.8); background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; }
     
-    /* BADGE LAB (CENTER ATAS & TIADA SHADOW) */
+    /* LAB BADGE (TOP CENTER, NO SHADOW) */
     .lab-tag { 
-      background: #f59e0b; 
+      background: var(--lab-color); 
       color: #000; 
       font-weight: 900; 
       font-size: 9px; 
@@ -113,7 +115,7 @@
     .btn-pdf { background: #10b981; color: #fff; display: none; margin-top: 6px; }
     .btn-save { display: none; margin-top: 6px; }
     
-    #toast { visibility: hidden; background-color: #38bdf8; color: #0f172a; font-weight: bold; text-align: center; border-radius: 6px; padding: 8px; position: fixed; z-index: 10; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; }
+    #toast { visibility: hidden; background-color: #38bdf8; color: #0f172a; font-weight: bold; text-align: center; border-radius: 6px; position: fixed; z-index: 10; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; }
     #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
     /* CSS PRINT FULL-BLEED LANDSCAPE */
@@ -296,7 +298,7 @@
           body: JSON.stringify({ imageBase64: compressedBase64 })
         });
 
-        appendLog("Tracing in background...");
+        appendLog("Tracing e-SMP table in background...");
 
         let attempts = 0;
         if (pollInterval) clearInterval(pollInterval);
@@ -337,6 +339,7 @@
       }
     }
 
+    // BORANG KIRI DENGAN MEDAN LECTURE & LAB BERASINGAN
     function renderCourses() {
       const container = document.getElementById('course-list');
       container.innerHTML = '';
@@ -351,12 +354,17 @@
             <input type="text" value="${course.course_code || ''}" placeholder="Code" oninput="updateData(${index}, 'course_code', this.value)" style="margin-bottom:4px; margin-top:2px;">
             <input type="text" value="${course.course_name || ''}" placeholder="Name" oninput="updateData(${index}, 'course_name', this.value)">
 
-            <label>Time / Day (e.g. S14-16,K14):</label>
+            <label>Lecture Time / Day (e.g. S14-16,K14):</label>
             <input type="text" value="${course.lecture_time || ''}" oninput="updateData(${index}, 'lecture_time', this.value)">
 
-            <label>Group & Location:</label>
-            <input type="text" value="${course.lecture_group || ''}" placeholder="Group" oninput="updateData(${index}, 'lecture_group', this.value)" style="margin-bottom:4px;">
+            <label>Lecture Location:</label>
             <input type="text" value="${course.location || ''}" placeholder="Location" oninput="updateData(${index}, 'location', this.value)">
+
+            <label class="label-lab">🧪 Lab Time / Day (Optional, e.g. R10-13):</label>
+            <input type="text" value="${course.lab_time || ''}" placeholder="e.g. R10-13" oninput="updateData(${index}, 'lab_time', this.value)">
+
+            <label class="label-lab">🧪 Lab Location:</label>
+            <input type="text" value="${course.lab_location || ''}" placeholder="Lab Location" oninput="updateData(${index}, 'lab_location', this.value)">
           </div>
         `;
       });
@@ -367,7 +375,7 @@
     }
 
     function addCourse() {
-      coursesData.push({ course_code: "", course_name: "", lecture_time: "", lecture_group: "", location: "" });
+      coursesData.push({ course_code: "", course_name: "", lecture_time: "", lecture_group: "", location: "", lab_time: "", lab_location: "" });
       renderCourses();
     }
 
@@ -378,7 +386,7 @@
     }
 
     function clearEmptyCourses() {
-      coursesData = coursesData.filter(c => c.course_code || c.course_name || c.lecture_time);
+      coursesData = coursesData.filter(c => c.course_code || c.course_name || c.lecture_time || c.lab_time);
       renderCourses();
       renderViews();
     }
@@ -426,15 +434,43 @@
       generateAgenda();
     }
 
-    // FUNGSI LOKASI DENGAN DETEKSI [LAB]
-    function parseCourseLocation(locationStr, partIndex) {
-      if (!locationStr) return { loc: '-', isLab: false };
-      const locs = locationStr.split(',').map(l => l.trim());
-      
-      if (locs.length > 1 && partIndex > 0) {
-        return { loc: locs[partIndex] || locs[0], isLab: true };
-      }
-      return { loc: locs[0], isLab: false };
+    // FUNGSI MEMBINA SLOT-SLOT MASA KULIAH & LAB
+    function getAllTimeSlots() {
+      let slots = [];
+
+      coursesData.forEach(c => {
+        if (!c.course_code) return;
+
+        // 1. Slot Kuliah
+        if (c.lecture_time) {
+          c.lecture_time.split(',').forEach(p => {
+            const dayCode = p.charAt(0);
+            const hourRange = p.substring(1);
+            if (hourRange.includes('-')) {
+              const [hStart, hEnd] = hourRange.split('-').map(x => parseInt(x));
+              slots.push({ dayCode, startHour: hStart, duration: hEnd - hStart, course: c, loc: c.location, isLab: false });
+            } else {
+              slots.push({ dayCode, startHour: parseInt(hourRange), duration: 1, course: c, loc: c.location, isLab: false });
+            }
+          });
+        }
+
+        // 2. Slot Lab (Jika Ada)
+        if (c.lab_time) {
+          c.lab_time.split(',').forEach(p => {
+            const dayCode = p.charAt(0);
+            const hourRange = p.substring(1);
+            if (hourRange.includes('-')) {
+              const [hStart, hEnd] = hourRange.split('-').map(x => parseInt(x));
+              slots.push({ dayCode, startHour: hStart, duration: hEnd - hStart, course: c, loc: c.lab_location || c.location, isLab: true });
+            } else {
+              slots.push({ dayCode, startHour: parseInt(hourRange), duration: 1, course: c, loc: c.lab_location || c.location, isLab: true });
+            }
+          });
+        }
+      });
+
+      return slots;
     }
 
     // 1. GENERATE GRID VIEW
@@ -456,6 +492,8 @@
         }
       });
 
+      const allSlots = getAllTimeSlots();
+
       startHours.forEach(hour => {
         const timeLabel = `${hour < 10 ? '0'+hour : hour}:00`;
         let rowHtml = `<tr><td style="font-weight:700; color:var(--text-sub); font-size:10px; background:#0f172a;">${timeLabel}</td>`;
@@ -463,53 +501,24 @@
         days.forEach(d => {
           if (skipCells[d][hour]) return;
 
-          let matchedCourse = null;
-          let duration = 1;
-          let partIdx = 0;
+          const matchedSlot = allSlots.find(s => s.dayCode === d && s.startHour === hour);
 
-          coursesData.forEach(c => {
-            if (!c.lecture_time) return;
-            const parts = c.lecture_time.split(',');
-            parts.forEach((p, idx) => {
-              const dayCode = p.charAt(0);
-              const hourRange = p.substring(1);
-
-              if (dayCode === d) {
-                if (hourRange.includes('-')) {
-                  const [hStart, hEnd] = hourRange.split('-').map(x => parseInt(x));
-                  if (hour === hStart) {
-                    matchedCourse = c;
-                    duration = hEnd - hStart;
-                    partIdx = idx;
-                  }
-                } else {
-                  if (hour === parseInt(hourRange)) {
-                    matchedCourse = c;
-                    duration = 1;
-                    partIdx = idx;
-                  }
-                }
-              }
-            });
-          });
-
-          if (matchedCourse) {
-            for (let i = 1; i < duration; i++) {
+          if (matchedSlot) {
+            for (let i = 1; i < matchedSlot.duration; i++) {
               skipCells[d][hour + i] = true;
             }
 
-            const shortLabel = getShortName(matchedCourse.course_code, matchedCourse.course_name);
-            const color = subjectColors[matchedCourse.course_code] || COLOR_PALETTE[0];
-            const rowspanAttr = duration > 1 ? `rowspan="${duration}"` : '';
+            const shortLabel = getShortName(matchedSlot.course.course_code, matchedSlot.course.course_name);
+            const color = subjectColors[matchedSlot.course.course_code] || COLOR_PALETTE[0];
+            const rowspanAttr = matchedSlot.duration > 1 ? `rowspan="${matchedSlot.duration}"` : '';
 
-            const locInfo = parseCourseLocation(matchedCourse.location, partIdx);
-            const labTagHtml = locInfo.isLab ? `<div><span class="lab-tag">LAB</span></div>` : '';
+            const labTagHtml = matchedSlot.isLab ? `<div><span class="lab-tag">LAB</span></div>` : '';
 
             rowHtml += `<td ${rowspanAttr} style="padding: 2px;">
               <div class="subject-cell" style="background: ${color.bg}; color: ${color.text};">
                 ${labTagHtml}
                 <div class="code">${shortLabel}</div>
-                <div class="loc">${locInfo.loc}</div>
+                <div class="loc">${matchedSlot.loc || '-'}</div>
               </div>
             </td>`;
           } else {
@@ -537,57 +546,29 @@
         }
       });
 
+      const allSlots = getAllTimeSlots();
+
       Object.keys(daysMap).forEach(dayCode => {
         const dayName = daysMap[dayCode];
-        let dayClasses = [];
-
-        coursesData.forEach(c => {
-          if (!c.lecture_time) return;
-          const parts = c.lecture_time.split(',');
-          parts.forEach((p, idx) => {
-            if (p.charAt(0) === dayCode) {
-              const hourRange = p.substring(1);
-              let startHour = 8;
-              let formatTime = "";
-
-              if (hourRange.includes('-')) {
-                const [hStart] = hourRange.split('-').map(x => parseInt(x));
-                startHour = hStart;
-                formatTime = `${hStart > 12 ? hStart - 12 : hStart}:00 ${hStart >= 12 ? 'PM' : 'AM'}`;
-              } else {
-                startHour = parseInt(hourRange);
-                formatTime = `${startHour > 12 ? startHour - 12 : startHour}:00 ${startHour >= 12 ? 'PM' : 'AM'}`;
-              }
-
-              const locInfo = parseCourseLocation(c.location, idx);
-
-              dayClasses.push({
-                startHour,
-                timeStr: formatTime,
-                courseCode: c.course_code,
-                location: locInfo.loc,
-                isLab: locInfo.isLab
-              });
-            }
-          });
-        });
+        let dayClasses = allSlots.filter(s => s.dayCode === dayCode);
 
         dayClasses.sort((a, b) => a.startHour - b.startHour);
 
         if (dayClasses.length > 0) {
           let dayHtml = `<div class="agenda-day-group">`;
-          dayClasses.forEach((cls, idx) => {
-            const color = subjectColors[cls.courseCode] || COLOR_PALETTE[0];
+          dayClasses.forEach((slot, idx) => {
+            const color = subjectColors[slot.course.course_code] || COLOR_PALETTE[0];
             const dayLabel = idx === 0 ? dayName : '';
-            const labTagHtml = cls.isLab ? `<span class="lab-tag" style="margin-left:4px; margin-bottom:0;">LAB</span>` : '';
+            const labTagHtml = slot.isLab ? `<span class="lab-tag" style="margin-left:4px; margin-bottom:0;">LAB</span>` : '';
+            const formatTime = `${slot.startHour > 12 ? slot.startHour - 12 : slot.startHour}:00 ${slot.startHour >= 12 ? 'PM' : 'AM'}`;
 
             dayHtml += `
               <div class="agenda-row">
                 <div class="agenda-day">${dayLabel}</div>
-                <div class="agenda-time">${cls.timeStr}</div>
+                <div class="agenda-time">${formatTime}</div>
                 <div class="agenda-bar" style="background: ${color.bg};"></div>
-                <div class="agenda-course">${cls.courseCode} ${labTagHtml}</div>
-                <div class="agenda-loc">${cls.location}</div>
+                <div class="agenda-course">${slot.course.course_code} ${labTagHtml}</div>
+                <div class="agenda-loc">${slot.loc || '-'}</div>
               </div>
             `;
           });

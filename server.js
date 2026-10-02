@@ -14,26 +14,28 @@ const ai = new GoogleGenAI();
 app.post('/api/trace', async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) {
-    return res.status(400).json({ success: false, error: "Imej tidak dijumpai." });
+    return res.status(400).json({ success: false, error: "Image not found." });
   }
 
-  // Respon pantas non-blocking untuk elak browser timeout
-  res.json({ success: true, message: "Proses AI dimulakan di belakang tabir..." });
+  res.json({ success: true, message: "AI process started in background..." });
 
   (async () => {
     try {
-      console.log("🚀 [BACKEND] Memulakan AI Trace...");
+      console.log("🚀 [BACKEND] Starting AI Trace for e-SMP UPM Table...");
 
       const prompt = `
-      Analisis gambar jadual waktu universiti ini.
-      Ekstrak maklumat berikut bagi setiap subjek:
-      - course_code
-      - course_name
-      - lecture_time
-      - lecture_group
-      - location
+      Analyze this e-SMP UPM student portal registered courses table image.
+      Extract every registered course row carefully:
+      - course_code (e.g. SSW3307, CND3100)
+      - course_name (e.g. USER EXPERIENCE AND USER INTERFACE)
+      - lecture_time (from 'LECTURE TIME' column, e.g. S14-16,K14)
+      - lecture_group (from 'LECTURE GROUP' column)
+      - location (from 'LECTURE LOCATION' column, e.g. BK1(FSKTM))
+      - lab_time (from 'LAB TIME' column if present, e.g. R10-13, or empty string "")
+      - lab_group (from 'LAB GROUP' column if present, or empty string "")
+      - lab_location (from 'LAB LOCATION' column if present, e.g. M.P.DATA FSKTM, or empty string "")
 
-      Format jawapan strictly dalam JSON array sahaja tanpa sebarang markdown/teks tambahan.
+      Return STRICTLY a JSON array of objects without markdown formatted wrappers or extra text.
       `;
 
       const pureBase64 = imageBase64.split(',')[1] || imageBase64;
@@ -42,7 +44,7 @@ app.post('/api/trace', async (req, res) => {
 
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          console.log(`🤖 Percubaan ${attempt} memanggil ${modelName}...`);
+          console.log(`🤖 Attempt ${attempt} calling ${modelName}...`);
           const response = await ai.models.generateContent({
             model: modelName,
             contents: [{
@@ -59,7 +61,7 @@ app.post('/api/trace', async (req, res) => {
             break;
           }
         } catch (err) {
-          console.warn(`⚠️ Percubaan ${attempt} gagal: ${err.message}`);
+          console.warn(`⚠️ Attempt ${attempt} failed: ${err.message}`);
           await new Promise(r => setTimeout(r, 2000));
         }
       }
@@ -69,10 +71,10 @@ app.post('/api/trace', async (req, res) => {
         const parsedData = JSON.parse(cleanText);
         
         fs.writeFileSync('./timetable_db.json', JSON.stringify(parsedData, null, 2));
-        console.log("🎉 [BACKEND] AI Trace selesai & disimpan ke database!");
+        console.log("🎉 [BACKEND] e-SMP Trace complete & saved!");
       }
     } catch (e) {
-      console.error("❌ Ralat Backend:", e.message);
+      console.error("❌ Backend Error:", e.message);
     }
   })();
 });
@@ -82,17 +84,17 @@ app.get('/api/load', (req, res) => {
     const raw = fs.readFileSync('./timetable_db.json');
     res.json({ success: true, data: JSON.parse(raw) });
   } else {
-    res.json({ success: false, error: "Tiada data disimpan lagi." });
+    res.json({ success: false, error: "No data stored yet." });
   }
 });
 
 app.post('/api/save', (req, res) => {
   const confirmedData = req.body;
   fs.writeFileSync('./timetable_db.json', JSON.stringify(confirmedData, null, 2));
-  console.log("Jadual disahkan & disimpan!");
-  res.json({ success: true, message: "Jadual berjaya disimpan!" });
+  console.log("Timetable saved!");
+  res.json({ success: true, message: "Timetable saved successfully!" });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server sedia di http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
